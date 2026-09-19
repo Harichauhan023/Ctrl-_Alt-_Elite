@@ -1,0 +1,54 @@
+[
+  {
+    "feature": "landuse_score",
+    "importance": 0.6902
+  },
+  {
+    "feature": "nearest_major_road_km",
+    "importance": 0.207
+  },
+  {
+    "feature": "environment_risk_score",
+    "importance": 0.0483
+  },
+  {
+    "feature": "road_density",
+    "importance": 0.0242
+  },
+  {
+    "feature": "competitors_1km",
+    "importance": 0.0089
+  },
+  {
+    "feature": "competitors_3km",
+    "importance": 0.0065
+  },
+  {
+    "feature": "catchment_population_30m",
+    "importance": 0.0033
+  },
+  {
+    "feature": "catchment_population_20m",
+    "importance": 0.0031
+  },
+  {
+    "feature": "population_1km",
+    "importance": 0.0022
+  },
+  {
+    "feature": "population_density",
+    "importance": 0.0021
+  },
+  {
+    "feature": "population_3km",
+    "importance": 0.002
+  },
+  {
+    "feature": "catchment_population_10m",
+    "importance": 0.002
+  },
+  {
+    "feature": "nearest_competitor_km",
+    "importance": 0.0
+  }
+]
