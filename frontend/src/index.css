@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #070b14;
+  color: #e2e8f0;
+  font-family: "Inter Variable", Inter, system-ui, sans-serif;
+}
+
+/* slim scrollbars */
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #243356; border-radius: 8px; }
+
+.glass {
+  background: rgba(13, 20, 36, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(56, 189, 248, 0.14);
+}
+
+.panel-title {
+  @apply text-[11px] uppercase tracking-[0.14em] text-slate-400 font-semibold;
+}
+
+.btn {
+  @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors;
+}
+.btn-primary { @apply btn bg-accent-600 hover:bg-accent-500 text-white; }
+.btn-ghost { @apply btn bg-ink-700 hover:bg-ink-600 text-slate-200 border border-ink-600; }
+.btn-mint { @apply btn bg-mint-500/90 hover:bg-mint-400 text-ink-950; }
+
+/* MapLibre popup dark theme */
+.maplibregl-popup-content {
+  background: #0d1424 !important;
+  color: #e2e8f0 !important;
+  border: 1px solid #243356;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: "Inter Variable", Inter, system-ui, sans-serif;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+.maplibregl-popup-tip { border-top-color: #0d1424 !important; }
+.maplibregl-popup-close-button { color: #94a3b8; font-size: 16px; padding: 2px 6px; }
+
+/* range inputs */
+input[type="range"] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 4px; background: #243356; outline: none; }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #38bdf8; cursor: pointer; border: 2px solid #0a0f1c;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #38bdf8; cursor: pointer; border: 2px solid #0a0f1c;
+}
+
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.live-dot { animation: pulse-dot 1.6s infinite; }

@@ -1,0 +1,67 @@
+[
+  {
+    "feature": "landuse_score",
+    "name": "landuse_score",
+    "importance": 0.694
+  },
+  {
+    "feature": "nearest_major_road_km",
+    "name": "nearest_major_road_km",
+    "importance": 0.2082
+  },
+  {
+    "feature": "environment_risk_score",
+    "name": "environment_risk_score",
+    "importance": 0.049
+  },
+  {
+    "feature": "road_density",
+    "name": "road_density",
+    "importance": 0.023
+  },
+  {
+    "feature": "competitors_1km",
+    "name": "competitors_1km",
+    "importance": 0.0091
+  },
+  {
+    "feature": "competitors_3km",
+    "name": "competitors_3km",
+    "importance": 0.0062
+  },
+  {
+    "feature": "catchment_population_20m",
+    "name": "catchment_population_20m",
+    "importance": 0.0023
+  },
+  {
+    "feature": "catchment_population_30m",
+    "name": "catchment_population_30m",
+    "importance": 0.0021
+  },
+  {
+    "feature": "population_1km",
+    "name": "population_1km",
+    "importance": 0.0016
+  },
+  {
+    "feature": "catchment_population_10m",
+    "name": "catchment_population_10m",
+    "importance": 0.0016
+  },
+  {
+    "feature": "population_density",
+    "name": "population_density",
+    "importance": 0.0015
+  },
+  {
+    "feature": "population_3km",
+    "name": "population_3km",
+    "importance": 0.0014
+  },
+  {
+    "feature": "nearest_competitor_km",
+    "name": "nearest_competitor_km",
+    "importance": 0.0
+  }
+]

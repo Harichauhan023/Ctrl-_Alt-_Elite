@@ -1,0 +1,27 @@
+# secrets — NEVER commit
+.env
+.env.local
+*.key
+
+# node
+node_modules/
+dist/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# os
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+
+# generated binary artifacts (recreated at first boot / by scripts)
+data/geoready.duckdb
+data/geoready.duckdb.wal
+data/sites_user.json

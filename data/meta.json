@@ -1,0 +1,26 @@
+{
+  "area": "Rajkot Metropolitan Area, Gujarat, IN",
+  "center": {
+    "lat": 22.3039,
+    "lon": 70.8022
+  },
+  "bbox": {
+    "s": 22.22,
+    "w": 70.7,
+    "n": 22.38,
+    "e": 70.92
+  },
+  "generated_at": "2026-09-19T05:13:52",
+  "layers": {
+    "competitors": 15,
+    "fuel": 8,
+    "hospitals": 176,
+    "landuse": 16,
+    "population": 4270,
+    "risk": 4,
+    "roads": 1538,
+    "schools": 12,
+    "sites": 8
+  },
+  "notes": "Roads & POIs from OpenStreetMap (Overpass). Population, land-use, risk and most competitors are synthetic, seeded from real Rajkot geography."
+}

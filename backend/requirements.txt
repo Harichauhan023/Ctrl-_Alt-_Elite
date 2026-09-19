@@ -1,0 +1,19 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.9
+pydantic-settings>=2.5
+httpx>=0.27
+geopandas>=1.0
+shapely>=2.0
+pyproj>=3.6
+h3>=4.1
+fastembed>=0.4
+pytest>=8.0
+
+# ── upgrade pack: real database / ML / routing ──────────────────────────────
+duckdb>=1.0            # embedded spatial+vector DB (fallback & CI mode)
+psycopg[binary]>=3.1   # PostgreSQL driver (hero mode: PostGIS + pgvector)
+scikit-learn>=1.4      # RandomForest site-readiness model
+joblib>=1.3            # model artifact serialization
+networkx>=3.2          # road-graph Dijkstra catchment engine
+pandas>=2.1            # ML training data handling

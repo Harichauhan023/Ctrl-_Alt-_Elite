@@ -1,0 +1,24 @@
+# GeoReady-AI — hero-mode database: PostgreSQL + PostGIS + pgvector.
+# The app auto-detects this service via DATABASE_URL in .env and runs full
+# spatial SQL against it. Without it, the SAME code runs on an embedded
+# DuckDB file (data/geoready.duckdb) — zero-install fallback mode.
+services:
+  db:
+    build: ./infra/postgis
+    container_name: geoready-db
+    environment:
+      POSTGRES_USER: geoready
+      POSTGRES_PASSWORD: geoready
+      POSTGRES_DB: geoready
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geoready -d geoready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
