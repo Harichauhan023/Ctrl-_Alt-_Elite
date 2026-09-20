@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-"""Retrieval quality probe (spec §40): known queries → expected source docs.
-
-    python rag/test_retrieval.py
-
-Prints a pass/fail table; exits non-zero if any probe misses its expected
-document in the top-3.
-"""
 from __future__ import annotations
 
 import sys

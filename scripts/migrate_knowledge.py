@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-"""One-off: migrate the legacy in-memory corpus (app/rag/knowledge.py) into
-real markdown knowledge-base files under rag/documents/ (spec §16).
-
-Each chunk becomes a `## Section` inside its document file; ingest.py splits
-on those sections later. Front-matter carries title/tags provenance.
-"""
 from __future__ import annotations
 
 import re

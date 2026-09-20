@@ -1,17 +1,10 @@
-"""The Site Readiness scoring engine — deterministic core of GeoReady-AI.
 
-    SQL-extracted features → pure factor scorers → hard constraints
-    → weighted sum (user weights) → status band → reasons & risks
-    → (alongside, never merged) ML model prediction from the same features
-
-The LLM NEVER touches this code path (PS-2 Rule 1).
-"""
 from __future__ import annotations
 
-from ..geospatial.features import apply_ghosts, get_extractor
-from ..geospatial.loader import DataStore
-from . import factors
-from .config import get_business, status_for
+from app.geospatial.features import apply_ghosts, get_extractor
+from app.geospatial.loader import DataStore
+from app.scoring import factors
+from app.scoring.config import get_business, status_for
 
 FACTORS = ["population", "accessibility", "competition", "land_use", "environment"]
 
@@ -39,7 +32,6 @@ def validate_weights(weights: dict) -> dict:
     total = sum(float(weights[f]) for f in FACTORS)
     if abs(total - 1.0) > 0.051:
         raise ValueError(f"Weights must sum to 100% (got {total*100:.1f}%).")
-    # renormalise softly so tiny rounding never leaks into the score
     return {f: float(weights[f]) / total for f in FACTORS}
 
 
@@ -71,7 +63,6 @@ def analyze(lat: float, lng: float, business_type: str, store: DataStore,
               "competition": round(cmp_s, 1), "land_use": round(lnd_s, 1),
               "environment": round(env_s, 1)}
 
-    # hard constraints (PS-2 §31) — these invalidate rather than penalise
     constraints = []
     if lnd_d.get("land_use_category") == "protected":
         constraints.append("Site lies on protected land (lake / river corridor) — development not permitted")
@@ -83,11 +74,10 @@ def analyze(lat: float, lng: float, business_type: str, store: DataStore,
 
     reasons, risks = build_reasons(scores, cmp_d, lnd_d, env_d, cfg, constraints)
 
-    # ── ML prediction — from the same real features, NEVER from the weights ──
     ml = None
     if ml_service is None:
         try:
-            from ..services.ml_service import get_ml_service
+            from app.services.ml_service import get_ml_service
             ml_service = get_ml_service()
         except Exception:
             ml_service = None
@@ -111,7 +101,7 @@ def analyze(lat: float, lng: float, business_type: str, store: DataStore,
         "constraints": constraints,
         "reasons": reasons,
         "risks": risks,
-        "ml_prediction": ml,                        # float 0–100 or None
+        "ml_prediction": ml,
         "ml_available": ml is not None,
         "feature_mode": getattr(extractor, "mode", "memory"),
         "ml_features": ml_service.feature_vector(fe) if (ml_service and ml_service.available) else None,
@@ -148,7 +138,6 @@ def build_reasons(scores, cmp_d, lnd_d, env_d, cfg, constraints):
 
 
 def facts_for_llm(result: dict) -> dict:
-    """Compact structured facts handed to the LLM/RAG — no invention possible."""
     d = result.get("details", {})
     return {
         "site_name": result.get("name") or "Candidate pin",

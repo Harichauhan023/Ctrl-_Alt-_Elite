@@ -1,9 +1,3 @@
-"""
-Deterministic rule-based explainer — PS-2 §54 Graceful AI Degradation.
-
-Produces the SAME JSON shape as the LLM so the frontend never cares which
-engine answered. This is also the primary explainer when no API keys are set.
-"""
 from __future__ import annotations
 
 _LABELS = {

@@ -1,9 +1,3 @@
-"""RAG pipeline tests (spec §42 — RAG).
-
-Covers: documents are real files on disk and parse into chunks,
-embeddings generate (384-d), semantic retrieval returns ranked chunks
-WITH source metadata preserved.
-"""
 import sys
 from pathlib import Path
 

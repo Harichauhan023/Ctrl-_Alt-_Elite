@@ -1,15 +1,4 @@
-"""
-GeoReady Assistant — conversational layer with REAL tool use (PS-2 §38 extended).
 
-Pipeline per message:
-    intent parsing  →  deterministic engine action (analyze / compare / recommend / knowledge+RAG)
-    →  fact bundle  →  either Gemini narration (if providers configured)
-                       or deterministic template narration (always works)
-    →  reply + action data (fly-to chips, analysis objects) + RAG citations
-
-The assistant can NEVER invent numbers: every number comes from the engine;
-knowledge answers cite retrieved chunks. (PS-2 Rule 1 extended to chat.)
-"""
 from __future__ import annotations
 
 import json
@@ -17,13 +6,13 @@ import re
 
 from fastapi import APIRouter
 
-from ..ai.provider import provider_manager
-from ..geospatial.hexgrid import hotspot_grid
-from ..geospatial.loader import get_store
-from ..rag.store import rag_store
-from ..schemas.models import ChatRequest, ChatResponse
-from ..scoring import engine
-from ..scoring.config import BUSINESS_CONFIGS, get_business
+from app.ai.provider import provider_manager
+from app.geospatial.hexgrid import hotspot_grid
+from app.geospatial.loader import get_store
+from app.rag.store import rag_store
+from app.schemas.models import ChatRequest, ChatResponse
+from app.scoring import engine
+from app.scoring.config import BUSINESS_CONFIGS, get_business
 
 router = APIRouter()
 
@@ -68,7 +57,6 @@ def _match_sites(msg: str, store) -> list[dict]:
     hits = []
     for s in store.sites:
         name_l = s["name"].lower()
-        # distinctive tokens: locality words of 4+ chars
         tokens = {t for t in re.split(r"[^a-z]+", name_l) if len(t) >= 4}
         if any(t in msg for t in tokens):
             hits.append(s)
@@ -98,8 +86,8 @@ def _parse_constraints(msg: str) -> dict:
 
 
 def _recommend_action(msg, business, top_k, cons):
-    from .recommend import recommend  # reuse the real endpoint logic
-    from ..schemas.models import RecommendRequest
+    from app.api.recommend import recommend  # reuse the real endpoint logic
+    from app.schemas.models import RecommendRequest
     req = RecommendRequest(business_type=business, top_k=top_k, **cons)
     data = recommend(req)
     label = get_business(business)["label"]
@@ -174,8 +162,6 @@ def chat(req: ChatRequest):
     business = _detect_business(msg) or (ctx_business if ctx_business in BUSINESS_CONFIGS else "EV_CHARGING")
     chunks = rag_store.retrieve(raw)
     citations = [c["title"] for c in chunks]
-
-    # ── intent 1: help ─────────────────────────────────────────────────────
     if any(w in msg for w in HELP_WORDS):
         return ChatResponse(reply=HELP_REPLY, action="help",
                             data={"capabilities": True}, citations=citations[:2],
@@ -183,7 +169,6 @@ def chat(req: ChatRequest):
 
     sites = _match_sites(msg, store)
 
-    # ── intent 2: compare (needs ≥2 named sites) ──────────────────────────
     if (any(w in msg for w in COMPARE_WORDS) or "compare" in msg) and len(sites) >= 2:
         results = [engine.analyze(s["latitude"], s["longitude"], business, store, None, name=s["name"])
                    for s in sites[:3]]
@@ -206,7 +191,6 @@ def chat(req: ChatRequest):
                             data={"results": results, "winners": winners},
                             citations=citations, used_llm=used, provider=pinfo)
 
-    # ── intent 3: recommend ───────────────────────────────────────────────
     if any(w in msg for w in RECOMMEND_WORDS):
         if not hotspot_grid.ready:
             return ChatResponse(reply="Zone grid is still warming up — try again in a few seconds.",
@@ -220,7 +204,6 @@ def chat(req: ChatRequest):
         return ChatResponse(reply=reply, action="recommend", data=data,
                             citations=citations, used_llm=used, provider=pinfo)
 
-    # ── intent 4: analyze a named site ────────────────────────────────────
     if sites:
         s = sites[0]
         a = engine.analyze(s["latitude"], s["longitude"], business, store, None, name=s["name"])
@@ -230,7 +213,6 @@ def chat(req: ChatRequest):
         return ChatResponse(reply=reply, action="analyze", data={"analysis": a},
                             citations=citations, used_llm=used, provider=pinfo)
 
-    # ── intent 5: explain current context ("this site", "why so low") ────
     last = (req.context or {}).get("last_analysis")
     if last and any(w in msg for w in ("this site", "this place", "why", "it", "score", "explain")):
         template = _analyze_reply(last)
@@ -239,7 +221,6 @@ def chat(req: ChatRequest):
         return ChatResponse(reply=reply, action="explain_context", data={"analysis": last},
                             citations=citations, used_llm=used, provider=pinfo)
 
-    # ── intent 6 (default): knowledge via RAG ─────────────────────────────
     template = _knowledge_reply(raw, chunks)
     facts = {"task": "answer knowledge question", "retrieved_chunks": chunks[:2]}
     reply, used, pinfo = _llm_or_template(facts, template, raw)

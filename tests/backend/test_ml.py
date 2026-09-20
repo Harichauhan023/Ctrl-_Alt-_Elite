@@ -1,8 +1,3 @@
-"""ML pipeline tests (spec §42 — ML).
-
-Covers: model artifact loads, feature schema matches training, prediction
-returns a bounded numeric score, metrics are real file contents.
-"""
 import json
 from pathlib import Path
 

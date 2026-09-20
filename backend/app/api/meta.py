@@ -1,4 +1,3 @@
-"""Meta endpoints: health, layer catalogue, business types, dashboard stats."""
 from __future__ import annotations
 
 import json
@@ -6,15 +5,15 @@ import time
 
 from fastapi import APIRouter, HTTPException
 
-from ..ai.provider import provider_manager
-from ..db.engine import get_geodb
-from ..geospatial.features import get_extractor
-from ..geospatial.hexgrid import hotspot_grid
-from ..geospatial.loader import ALL_LAYERS, get_store
-from ..geospatial.routing import router as road_router
-from ..rag.store import rag_store
-from ..scoring.config import BUSINESS_CONFIGS
-from ..services.ml_service import get_ml_service
+from app.ai.provider import provider_manager
+from app.db.engine import get_geodb
+from app.geospatial.features import get_extractor
+from app.geospatial.hexgrid import hotspot_grid
+from app.geospatial.loader import ALL_LAYERS, get_store
+from app.geospatial.routing import router as road_router
+from app.rag.store import rag_store
+from app.scoring.config import BUSINESS_CONFIGS
+from app.services.ml_service import get_ml_service
 
 router = APIRouter()
 _STARTED = time.time()
@@ -82,8 +81,6 @@ def business_types():
 
 @router.get("/rag/search")
 def rag_search(q: str, k: int = 6):
-    """Knowledge-explorer endpoint — raw semantic retrieval, exposed for the UI.
-    Returns retrieved chunks WITH source paths + similarity scores (spec §20)."""
     chunks = rag_store.retrieve(q, k=min(k, 12))
     return {"query": q, "mode": rag_store.mode,
             "total_docs": rag_store.total_docs(),

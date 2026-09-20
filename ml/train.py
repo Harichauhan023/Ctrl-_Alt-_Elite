@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-"""Train the site-readiness ML model (spec §39).
-
-    python ml/train.py
-
-Pipeline: load training_data.csv → validate schema → 80/20 split (seed 42)
-→ RandomForestRegressor → holdout MAE/RMSE/R² → persist artifacts:
-    ml/models/site_readiness_model.joblib
-    ml/models/metrics.json
-    ml/models/feature_importance.json
-"""
 from __future__ import annotations
 
 import json

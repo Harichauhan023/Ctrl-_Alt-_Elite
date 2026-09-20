@@ -1,15 +1,3 @@
-"""
-Business-type scoring configurations.
-
-`weights` are the default factor weights (user can override via UI sliders).
-`landuse` maps land-use category → suitability 0-100 for that business.
-`competition_polarity`:
-    "avoid"   → fewer/ farther competitors = better (most businesses)
-    "attract" → competitor presence validates the market (e.g. some retail)
-
-All values are editable methodology assumptions, not universal business rules
-(PS-2 §25/§31/§56).
-"""
 
 BUSINESS_CONFIGS: dict[str, dict] = {
     "EV_CHARGING": {

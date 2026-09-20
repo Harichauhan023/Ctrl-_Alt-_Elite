@@ -1,20 +1,13 @@
-"""Catchment / accessibility analysis (PS-2 §35).
-
-Primary: real routing engine — networkx single-source Dijkstra over the OSM
-road graph (speed by road class) → true 10/20/30-min isochrones; population
-inside each polygon via SQL (ST_Within). Fallback: labelled straight-line
-travel shed at 18 km/h (never bricks).
-"""
 from __future__ import annotations
 
 import numpy as np
 from fastapi import APIRouter
 
-from ..db.engine import get_geodb
-from ..geospatial.features import get_extractor
-from ..geospatial.loader import get_store
-from ..geospatial.routing import MINUTES, router as road_router
-from ..schemas.models import CatchmentRequest
+from app.db.engine import get_geodb
+from app.geospatial.features import get_extractor
+from app.geospatial.loader import get_store
+from app.geospatial.routing import MINUTES, router as road_router
+from app.schemas.models import CatchmentRequest
 
 router = APIRouter()
 
@@ -30,7 +23,6 @@ def catchment(req: CatchmentRequest):
     except Exception:
         extractor = None
 
-    # ── real network isochrones ───────────────────────────────────────────
     if road_router.ready:
         try:
             rings = road_router.isochrones(store, req.latitude, req.longitude, extractor, db)
@@ -50,7 +42,6 @@ def catchment(req: CatchmentRequest):
         except Exception as exc:  # noqa: BLE001
             print(f"⚠ network catchment failed ({exc}) — falling back to travel shed")
 
-    # ── fallback: straight-line travel shed (labelled approximation) ─────
     x, y = store.project_point(req.latitude, req.longitude)
     radii_m = [round(m / 60 * URBAN_SPEED_KMH * 1000) for m in MINUTES]
     results = []

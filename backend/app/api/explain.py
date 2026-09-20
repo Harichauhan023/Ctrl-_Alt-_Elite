@@ -1,20 +1,14 @@
-"""AI explanation endpoint (PS-2 §38–§39, §53–§54).
-
-Flow: structured facts → cache check → RAG top-K → Gemini failover chain →
-deterministic fallback. The underlying scores are ALREADY computed; AI failure
-never breaks the analysis.
-"""
 from __future__ import annotations
 
 from fastapi import APIRouter
 
-from ..ai.cache import explanation_cache
-from ..ai.explainer import deterministic_explanation
-from ..ai.provider import provider_manager
-from ..rag.prompts import SYSTEM_INSTRUCTION, build_user_prompt
-from ..rag.store import rag_store
-from ..schemas.models import ExplainRequest
-from ..scoring.engine import facts_for_llm
+from app.ai.cache import explanation_cache
+from app.ai.explainer import deterministic_explanation
+from app.ai.provider import provider_manager
+from app.rag.prompts import SYSTEM_INSTRUCTION, build_user_prompt
+from app.rag.store import rag_store
+from app.schemas.models import ExplainRequest
+from app.scoring.engine import facts_for_llm
 
 router = APIRouter()
 

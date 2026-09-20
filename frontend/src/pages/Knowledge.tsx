@@ -159,7 +159,7 @@ export default function Knowledge() {
 
         <div className="flex items-center gap-2 border-t border-ink-700 pt-3 pb-6 text-[10px] text-slate-500">
           <Brain size={11} className="text-accent-400" />
-          PS-2 rule honored: the deterministic engine computes every score; this corpus only
+          Design principle: the deterministic engine computes every score; this corpus only
           grounds explanations &amp; the assistant's replies — and every chunk names its source document.
         </div>
       </div>

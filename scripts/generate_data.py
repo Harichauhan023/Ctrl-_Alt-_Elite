@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-"""
-GeoReady-AI — Rajkot data pipeline.
-
-Hybrid data strategy (per PS-2 §22/§37):
-  * REAL   : roads, hospitals, schools, fuel stations, real EV chargers  → OpenStreetMap (Overpass)
-  * SYNTHETIC : population grid (H3), land-use zones, environmental risk, competitor top-up, candidate sites
-
-If the Overpass API is unreachable, the script falls back to a synthetic
-road network so the demo can NEVER be blocked by the network.
-"""
 import json
 import math
 import random
@@ -28,10 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
 
-# ── Study area: Rajkot, Gujarat ─────────────────────────────────────────────
-CENTER = (22.3039, 70.8022)  # (lat, lon) — matches PS docs example coords
+CENTER = (22.3039, 70.8022)
 BBOX = (22.22, 70.70, 22.38, 70.92)  # S, W, N, E
-UTM = "EPSG:32643"  # UTM zone 43N (Rajkot)
+UTM = "EPSG:32643"  # UTM zone 43N
 
 _to_utm = Transformer.from_crs("EPSG:4326", UTM, always_xy=True).transform
 _to_ll = Transformer.from_crs(UTM, "EPSG:4326", always_xy=True).transform
@@ -65,9 +53,7 @@ def save(name, geojson):
     print(f"  ✔ {name:<22} {n:>5} features  ({path.stat().st_size/1024:.0f} KB)")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 1. REAL DATA — OpenStreetMap via Overpass
-# ─────────────────────────────────────────────────────────────────────────────
+# OpenStreetMap via Overpass
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 S, W, N, E = BBOX
 
@@ -170,9 +156,7 @@ def synthetic_roads():
     return roads
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 2. SYNTHETIC LAYERS
-# ─────────────────────────────────────────────────────────────────────────────
+# Population and synthetic layers
 # Density peaks modelled on real Rajkot neighbourhoods (name, lat, lon, peak density/km², sigma km)
 POP_PEAKS = [
     ("Old City core", 22.2980, 70.7925, 26000, 0.85),

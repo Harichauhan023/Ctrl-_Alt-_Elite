@@ -38,6 +38,10 @@ def tmp_geodb(store):
     from app.db.seed import seed_geodb
     path = Path(tempfile.mkdtemp(prefix="geoready-test-")) / "test.duckdb"
     db = _open_duckdb(path)
+    if not db.spatial_loaded:
+        import pytest as _pt
+        _pt.skip("duckdb 'spatial' extension unavailable on this machine "
+                 "(network blocks extensions.duckdb.org and no vendored copy loaded)")
     seed_geodb(db, store)
     yield db
     db.close()

@@ -1,15 +1,3 @@
-"""
-Gemini multi-provider failover (PS-2 §10–§13).
-
-  • up to 4 independently-authorised project credentials
-  • temporary failures (429 / timeout / selected 5xx)  → cooldown + next provider
-  • config failures (400 / 401 / 403)                  → disable provider, next
-  • all providers down                                  → return None (caller falls back
-    to the deterministic explainer — the app NEVER breaks on AI, PS-2 Rule 4)
-
-Fails over provider-by-provider with exponential-backoff cooldowns; providers
-automatically rejoin the rotation when their cooldown expires.
-"""
 from __future__ import annotations
 
 import json
@@ -19,7 +7,7 @@ from dataclasses import dataclass, field
 
 import httpx
 
-from ..config import get_settings
+from app.config import get_settings
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
 
@@ -74,7 +62,6 @@ class GeminiProviderManager:
             "last_error": p.last_error,
         } for p in self.providers]
 
-    # ── main entry ────────────────────────────────────────────────────────
     def explain(self, system: str, user: str, expect_json: bool = True) -> tuple[dict | None, str | None]:
         """Returns (parsed_json | {"_text": ...}, provider_name) or (None, reason)."""
         if not self.providers:
@@ -106,7 +93,6 @@ class GeminiProviderManager:
         self.fallback_count += 1
         return None, "all_providers_unavailable"
 
-    # ── single call ───────────────────────────────────────────────────────
     def _call(self, p: ProviderState, system: str, user: str, expect_json: bool = True) -> dict:
         url = GEMINI_URL.format(model=self.model, key=p.key)
         body = {
@@ -115,7 +101,7 @@ class GeminiProviderManager:
             "generationConfig": {
                 "maxOutputTokens": self.max_tokens,
                 "temperature": 0.3,
-                **({"responseMimeType": "application/json"} if expect_json else {}),
+                **(({"responseMimeType": "application/json"} if expect_json else {})),
             },
         }
         try:
@@ -158,3 +144,4 @@ def _parse_json_loose(text: str) -> dict:
 
 
 provider_manager = GeminiProviderManager()
+

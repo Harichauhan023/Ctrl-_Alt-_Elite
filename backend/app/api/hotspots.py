@@ -1,10 +1,9 @@
-"""H3 readiness heatmap endpoints (PS-2 §34: /api/hotspots)."""
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
 
-from ..geospatial.hexgrid import hotspot_grid
-from ..scoring.config import BUSINESS_CONFIGS
+from app.geospatial.hexgrid import hotspot_grid
+from app.scoring.config import BUSINESS_CONFIGS
 
 router = APIRouter()
 

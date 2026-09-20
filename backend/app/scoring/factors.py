@@ -1,29 +1,15 @@
-"""Factor scorers (0–100) — PURE functions over extracted features.
-
-Features come from `geospatial/features.py` (real SQL spatial queries against
-PostGIS/DuckDB, or the memory fallback). These functions contain the business
-logic only: decay curves, component blending, polarity, hard caps. Everything
-is deterministic: same features ⇒ same scores (PS-2 Rule 10).
-
-Methodology per factor:
-  population     effective population within 1.2 km, exponential decay (0.6 km)
-  accessibility  60% proximity to MAJOR roads (decay) + 40% road density in 600 m
-  competition    counts within 1/3 km + nearest distance; polarity avoid|attract
-  land_use       category suitability per business config
-  environment    worst intersecting risk polygon → level score; critical = hard stop
-"""
 from __future__ import annotations
 
 import math
 
-from .config import ENV_SCORE_MAP
+from app.scoring.config import ENV_SCORE_MAP
 
 POP_RADIUS_M = 1200.0
 POP_DECAY_KM = 0.6
 ROAD_DENSITY_RADIUS_M = 600.0
-ROAD_DENSITY_REF = 9.0         # km of road per km² that maps to a perfect 100
-MAJOR_ROAD_DECAY_KM = 1.2      # urban reality: 500 m from an arterial is still excellent
-ANY_ROAD_HARD_CAP_KM = 5.0     # PS-2 §18 — far from ANY road ⇒ heavily capped
+ROAD_DENSITY_REF = 9.0
+MAJOR_ROAD_DECAY_KM = 1.2
+ANY_ROAD_HARD_CAP_KM = 5.0
 
 
 def population_score(fe: dict, pop_ref: float) -> tuple[float, dict]:

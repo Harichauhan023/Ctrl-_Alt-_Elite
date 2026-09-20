@@ -1,11 +1,4 @@
-"""RAG ingestion pipeline (spec §40).
 
-    python rag/ingest.py
-
-reads rag/documents/**.md → front-matter + section chunking → MiniLM
-embeddings → INSERT into the vector table (rag_chunks) → HNSW index (DuckDB)
-/ pgvector column (hero mode). Idempotent: replaces the corpus atomically.
-"""
 from __future__ import annotations
 
 import re
@@ -43,21 +36,19 @@ def chunk_document(path: Path) -> list[dict]:
     doctitle = meta.get("title", path.stem.replace("_", " ").title())
     tags = meta.get("tags", [])
 
-    # split into ## sections; anything before the first section is the intro
     parts = re.split(r"\n(?=## )", body)
     sections: list[str] = []
     for p in parts:
         p = p.strip()
         if not p or p.startswith("# ") and "\n" not in p:
             continue
-        # strip the leading "# Doc title" line from the intro segment
         p = re.sub(r"^# [^\n]*\n", "", p)
         if p:
             sections.append(p)
 
     merged: list[str] = []
     for s in sections:
-        if merged and len(s) < 120:          # fold tiny tails into the previous section
+        if merged and len(s) < 120:
             merged[-1] += "\n\n" + s
         else:
             merged.append(s)

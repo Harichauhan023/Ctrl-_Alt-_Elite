@@ -1,13 +1,3 @@
-#!/usr/bin/env python3
-"""Generate the ML training dataset (spec §9).
-
-    n candidate locations → REAL feature extraction (same SQL pipeline)
-    → documented label rubric (ml/labels.py) → ml/training_data.csv
-
-Usage:
-    python scripts/generate_training_data.py            # 10,000 rows (default)
-    python scripts/generate_training_data.py -n 2000    # quick pass
-"""
 from __future__ import annotations
 
 import argparse

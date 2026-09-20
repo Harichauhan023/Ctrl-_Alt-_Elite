@@ -1,20 +1,4 @@
-"""Feature extraction — the geospatial truth layer.
 
-Given (lat, lng), every number the system reasons about is produced HERE, by
-real SQL spatial queries (PostGIS or DuckDB-spatial, same dialect over UTM
-meters): populations within radii + exponential-decay mass, road distances &
-density via line∩buffer length, competitor counts, land-use/risk containment,
-and travel-time catchment proxies.
-
-Consumers:
-  • scoring/engine.py          → factor scores for one site
-  • geospatial/hexgrid.py      → 649-cell hotspot grid (batched extraction)
-  • geospatial/routing.py      → catchment populations
-  • scripts/generate_training_data.py → 10k ML training candidates (batched)
-
-Degradation chain (never bricks): postgis → duckdb → in-memory shapely.
-`mode` tells consumers which path answered.
-"""
 from __future__ import annotations
 
 import math
@@ -23,8 +7,8 @@ import numpy as np
 import shapely
 from shapely.geometry import Point
 
-from ..db.engine import GeoDB
-from .loader import DataStore
+from app.db.engine import GeoDB
+from app.geospatial.loader import DataStore
 
 POP_DECAY_M = 600.0          # exp decay scale (0.6 km)
 POP_RADIUS_M = 1200.0
@@ -43,13 +27,11 @@ def _values_pts(pts: list[tuple[int, float, float]]) -> str:
 
 
 class SQLExtractor:
-    """Primary path: everything computed by SQL in the spatial DB."""
 
     def __init__(self, db: GeoDB):
         self.db = db
         self.mode = db.mode
 
-    # ── single point → batch(1) (+ nearest competitor names) ─────────────
     def extract(self, x: float, y: float) -> dict:
         fe = self.extract_batch([(x, y)])[0]
         fe["nearest_competitors"] = self._nearest_competitors(x, y)
@@ -64,7 +46,6 @@ class SQLExtractor:
         except Exception:
             return []
 
-    # ── batched extraction (VALUES join per table) ────────────────────────
     def extract_batch(self, pts_xy: list[tuple[float, float]],
                       chunk: int = 400) -> list[dict]:
         n = len(pts_xy)
@@ -174,9 +155,6 @@ class SQLExtractor:
 
 
 class MemoryExtractor:
-    """Last-resort path: identical semantics computed with shapely arrays.
-    Used only when no database could be initialised at all."""
-
     mode = "memory"
 
     def __init__(self, store: DataStore):
@@ -257,10 +235,7 @@ def _empty_features() -> dict:
     }
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# ghost-rival mutation (what-if scenario) — adjusts counts/distances exactly
-# like stacking the points onto the competitor table would.
-# ─────────────────────────────────────────────────────────────────────────────
+
 def apply_ghosts(fe: dict, ghost_xy: list[tuple[float, float]], x: float, y: float) -> dict:
     if not ghost_xy:
         return fe
@@ -281,12 +256,13 @@ def apply_ghosts(fe: dict, ghost_xy: list[tuple[float, float]], x: float, y: flo
     return fe
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 _EXTRACTOR = None
 
 
 def init_extractor(db: GeoDB | None, store: DataStore):
     global _EXTRACTOR
+    if db is not None and db.mode != "postgis" and not getattr(db, "spatial_loaded", True):
+        db = None
     _EXTRACTOR = SQLExtractor(db) if db is not None else MemoryExtractor(store)
     print(f"✔ Feature extractor ready — mode={_EXTRACTOR.mode}")
     return _EXTRACTOR

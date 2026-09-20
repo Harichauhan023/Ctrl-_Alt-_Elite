@@ -1,17 +1,9 @@
-"""Backend façade over the REAL RAG pipeline (repo-root rag/ package).
-
-    documents → chunks → MiniLM embeddings → vector DB → SQL top-k
-
-Degradation chain (never bricks): pgvector → duckdb-vss → docs-memory
-(real docs + real embeddings, in-memory) → lexical keyword match.
-Mode strings surface in /api/health, /api/explain and the Knowledge page.
-"""
 from __future__ import annotations
 
 import sys
 import threading
 
-from ..config import ROOT_DIR, get_settings
+from app.config import ROOT_DIR, get_settings
 
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -19,19 +11,18 @@ if str(ROOT_DIR) not in sys.path:
 
 class RAGStore:
     def __init__(self):
-        self.mode: str = "pending"   # pgvector | duckdb-vss | docs-memory | lexical | pending
+        self.mode: str = "pending"
         self.error: str | None = None
         self._ready = threading.Event()
 
-    # ── warmup (run in a background thread at startup) ───────────────────
     def warmup(self) -> None:
         try:
-            from ..db.engine import get_geodb
+            from app.db.engine import get_geodb
             from rag import retriever
             from rag.ingest import ingest_documents
             db = get_geodb()
             if db is not None and db.table_empty("rag_chunks"):
-                ingest_documents(db)          # first boot: real ingest into DB
+                ingest_documents(db)
             self.mode = retriever.warm(db)
         except Exception as exc:  # noqa: BLE001
             self.mode = "lexical"
@@ -43,7 +34,6 @@ class RAGStore:
     def warmup_background(self) -> None:
         threading.Thread(target=self.warmup, daemon=True).start()
 
-    # ── retrieval ─────────────────────────────────────────────────────────
     def retrieve(self, query: str, k: int | None = None) -> list[dict]:
         self._ready.wait(timeout=60)
         from rag import retriever

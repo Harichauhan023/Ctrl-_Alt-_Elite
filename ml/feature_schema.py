@@ -1,26 +1,3 @@
-"""ML input feature schema — the single source of truth (spec §8).
-
-The trained model consumes geospatial features computed by the BACKEND
-pipeline (backend/app/geospatial/features.py — real SQL spatial queries).
-Order here == column order in training_data.csv == input order of model.
-
-Feature derivations from the canonical feature dict (`fe`):
-  population_1km            people within 1 km (res-9 cell containment sum)
-  population_3km            people within 3 km
-  population_density        population_1km / π  (persons per km²)
-  nearest_major_road_km     distance to motorway/trunk/primary/secondary
-  road_density              km of road per km² inside a 600 m disc
-  competitors_1km           competitor count within 1 km
-  competitors_3km           competitor count within 3 km
-  nearest_competitor_km     distance to nearest competitor (None → 5.0 cap)
-  landuse_score             neutral suitability = MEAN of the category's
-                            suitability across the six business configs
-                            (business-agnostic by design — deterministic
-                            layer applies business-specific judgement)
-  environment_risk_score    100/60/20/0 for low/medium/high/critical
-  catchment_population_*m   people within 10/20/30-min travel sheds
-                            (18 km/h urban proxy radii)
-"""
 from __future__ import annotations
 
 FEATURES: list[str] = [

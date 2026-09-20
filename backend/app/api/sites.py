@@ -1,10 +1,9 @@
-"""Candidate site endpoints (PS-2 §34)."""
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from ..geospatial.loader import get_store
-from ..schemas.models import SiteCreate
+from app.geospatial.loader import get_store
+from app.schemas.models import SiteCreate
 
 router = APIRouter()
 

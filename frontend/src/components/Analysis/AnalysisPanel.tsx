@@ -99,7 +99,6 @@ export default function AnalysisPanel({ docked }: { docked?: boolean }) {
 
           <ScoreGauge score={analysis.overall_score} status={analysis.status} />
 
-          {/* ── ML visualization (§38): learned model beside deterministic rules ── */}
           {analysis.ml_available && analysis.ml_prediction != null && (
             <div className="rounded-xl border border-violet-500/25 bg-violet-500/5 p-3">
               <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-violet-300">

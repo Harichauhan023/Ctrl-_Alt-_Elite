@@ -1,9 +1,3 @@
-"""
-GeoReady-AI — FastAPI application entrypoint.
-
-Startup: load geospatial layers → build H3 hotspot grid → warm RAG embeddings
-(background thread). Serves the built frontend from /frontend/dist when present.
-"""
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
@@ -12,15 +6,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from .api import api_router
-from .config import ROOT_DIR, get_settings
-from .db.engine import GeoDB, init_geodb
-from .db.seed import seed_geodb
-from .geospatial.features import init_extractor
-from .geospatial.hexgrid import hotspot_grid
-from .geospatial.loader import get_store
-from .geospatial.routing import router as road_router
-from .rag.store import rag_store
+from app.api import api_router
+from app.config import ROOT_DIR, get_settings
+from app.db.engine import GeoDB, init_geodb
+from app.db.seed import seed_geodb
+from app.geospatial.features import init_extractor
+from app.geospatial.hexgrid import hotspot_grid
+from app.geospatial.loader import get_store
+from app.geospatial.routing import router as road_router
+from app.rag.store import rag_store
 
 
 @asynccontextmanager
@@ -29,26 +23,42 @@ async def lifespan(app: FastAPI):
     print("═" * 56)
     print("  GeoReady-AI backend starting")
     print("═" * 56)
-    store = get_store(settings.data_dir)                 # 1. load all layers
+    store = get_store(settings.data_dir)
     db: GeoDB | None = None
     try:
-        db = init_geodb(settings.database_url, settings.duckdb_path)   # 2. spatial DB
-        if db.table_empty("population_cells"):
-            seed_geodb(db, store)                        # 2b. auto-seed once
+        db = init_geodb(settings.database_url, settings.duckdb_path)
     except Exception as exc:  # noqa: BLE001
-        print(f"⚠ spatial DB unavailable ({exc}) — memory-mode feature extraction")
+        print(f"spatial DB unavailable ({exc}) — memory-mode feature extraction")
         db = None
-    extractor = init_extractor(db, store)                # 3. SQL feature extractor
-    hotspot_grid.build(store, extractor, db)             # 4. H3 grid (→ materialise to DB)
-    road_router.build(store)                             # 5. routing graph
-    rag_store.warmup()                                   # 6. RAG: ingest + vector warm (foreground, ~2-4s)
+
+    db_spatial_ok = db is None or db.mode == "postgis" or getattr(db, "spatial_loaded", True)
+    if db is not None and not db_spatial_ok:
+        print("⚠ duckdb 'spatial' unavailable — degraded to in-memory feature mode\n"
+              "  (vendored copy used where possible)")
+        try:
+            db.create_rag_table()
+        except Exception as exc2:
+            print(f"degraded rag table init: {exc2}")
+    feature_db = db if db_spatial_ok else None
+
+    try:
+        if feature_db is not None and feature_db.table_empty("population_cells"):
+            seed_geodb(feature_db, store)
+    except Exception as exc:  # noqa: BLE001
+        print(f"seed failed ({exc}) — continuing with in-memory features")
+        feature_db = None
+
+    extractor = init_extractor(feature_db, store)
+    hotspot_grid.build(store, extractor, feature_db)
+    road_router.build(store)
+    rag_store.warmup()
     yield
 
 
 app = FastAPI(
     title="GeoReady-AI",
     version="1.0.0",
-    description="AI-Powered GeoSpatial Site Readiness Analyzer — Rajkot (Bit N Build '26, PS-2)",
+    description="AI-Powered GeoSpatial Site Readiness Analyzer — Rajkot",
     lifespan=lifespan,
 )
 
@@ -61,7 +71,6 @@ app.add_middleware(
 
 app.include_router(api_router, prefix="/api")
 
-# Serve the production frontend build when it exists (single-origin demo mode).
 DIST = ROOT_DIR / "frontend" / "dist"
 if DIST.exists():
     app.mount("/", StaticFiles(directory=DIST, html=True), name="frontend")

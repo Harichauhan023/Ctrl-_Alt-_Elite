@@ -88,7 +88,6 @@ export default function MapView() {
     }
   }, [updateDraft]);
 
-  // ── (re)install every data source + layer (after first load AND style swaps)
   const installDataLayers = useCallback((map: maplibregl.Map, withText: boolean) => {
     const data = layerDataCache.current;
     for (const n of DATA_LAYERS) map.addSource(n, { type: "geojson", data: data[n] ?? EMPTY_FC });
@@ -276,7 +275,6 @@ export default function MapView() {
     }
   }, [run, updateDraft]);
 
-  // ── 1. create the map (once) ────────────────────────────────────────────
   useEffect(() => {
     let dead = false;
     let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
@@ -361,7 +359,6 @@ export default function MapView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── basemap switching (manual) ──────────────────────────────────────────
   useEffect(() => {
     const map = mapSingleton.map;
     if (!map || !ready) return;
@@ -371,7 +368,6 @@ export default function MapView() {
     applyStyle(basemap);
   }, [basemap, ready, applyStyle, ensureDataLayers]);
 
-  // ── draw mode machinery (polygon + ghost arming) ───────────────────────
   useEffect(() => {
     const map = mapSingleton.map;
     if (!map || !ready) return;
@@ -403,7 +399,6 @@ export default function MapView() {
     }
   }, [drawMode, ready, finishPolygon, updateDraft]);
 
-  // ── 2. layer visibility / opacity ───────────────────────────────────────
   useEffect(() => {
     const map = mapSingleton.map;
     if (!map || !ready) return;
@@ -421,7 +416,6 @@ export default function MapView() {
     }
   }, [layerState, ready, styleKey]);
 
-  // ── 3. readiness heatmap ────────────────────────────────────────────────
   useEffect(() => {
     const map = mapSingleton.map;
     if (!map || !ready) return;
@@ -442,7 +436,6 @@ export default function MapView() {
     return () => clearTimeout(t);
   }, [heatmapOn, businessType, weights, ready, styleKey]);
 
-  // ── 4. sources: sites / pin / rings / ghosts / recommend / area ─────────
   useEffect(() => {
     const map = mapSingleton.map;
     if (!map || !ready) return;

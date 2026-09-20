@@ -1,12 +1,4 @@
-"""
-Central data store — loads every GeoJSON layer once at startup and keeps
-in-memory GeoDataFrames (WGSpatialReferenceSystemKilometres84 + UTM-43N projections),
-plus vectorised numpy/shapely arrays for fast scoring.
 
-PS-2 deviation note (approved): GeoPandas in-memory store instead of PostGIS.
-The API contract is unchanged; the store is the only place that would change
-if the team moves to PostGIS later.
-"""
 from __future__ import annotations
 
 import json
@@ -50,20 +42,18 @@ class DataStore:
         self.meta: dict = {}
         self._to_utm = Transformer.from_crs("EPSG:4326", UTM, always_xy=True).transform
         self._to_ll = Transformer.from_crs(UTM, "EPSG:4326", always_xy=True).transform
-        # fast arrays (populated in load_all)
-        self.pop_xy: np.ndarray | None = None      # (N,2) UTM centroids of res-9 cells
-        self.pop_vals: np.ndarray | None = None    # (N,) population
-        self.pop_ref: float = 1.0                  # normalisation reference
-        self.road_geoms: np.ndarray | None = None  # all road lines (UTM)
-        self.major_geoms: np.ndarray | None = None # major road lines (UTM)
-        self.comp_xy: np.ndarray | None = None     # competitor points (UTM)
+        self.pop_xy: np.ndarray | None = None
+        self.pop_vals: np.ndarray | None = None
+        self.pop_ref: float = 1.0
+        self.road_geoms: np.ndarray | None = None
+        self.major_geoms: np.ndarray | None = None
+        self.comp_xy: np.ndarray | None = None
         self.comp_names: list[str] = []
-        self.landuse_polys: list[tuple[str, object]] = []  # (category, geom_utm), protected first
-        self.risk_polys: list[tuple[str, str, object]] = []  # (risk_type, level, geom_utm)
-        self.sites: list[dict] = []                # preset + user sites
+        self.landuse_polys: list[tuple[str, object]] = []
+        self.risk_polys: list[tuple[str, str, object]] = []
+        self.sites: list[dict] = []
         self.bbox = {"s": 22.22, "w": 70.70, "n": 22.38, "e": 70.92}
 
-    # ── loading ──────────────────────────────────────────────────────────
     def load_all(self) -> None:
         print("▶ Loading geospatial layers…")
         for name in ALL_LAYERS:
@@ -87,14 +77,12 @@ class DataStore:
         print(f"✔ Data store ready — population normalisation ref = {self.pop_ref:,.0f}")
 
     def _build_fast_arrays(self) -> None:
-        # population centroids
         pop = self.layers.get("population")
         if pop is not None and len(pop):
             pu = pop.to_crs(UTM)
             cent = pu.geometry.centroid
             self.pop_xy = np.column_stack([cent.x.values, cent.y.values])
             self.pop_vals = pop["population"].astype(float).to_numpy()
-        # roads
         roads = self.layers.get("roads")
         if roads is not None and len(roads):
             ru = roads.to_crs(UTM)
@@ -108,7 +96,6 @@ class DataStore:
             self.road_geoms = np.array([], dtype=object)
             self.major_geoms = np.array([], dtype=object)
             self.total_road_km = 0.0
-        # competitors
         comp = self.layers.get("competitors")
         if comp is not None and len(comp):
             cu = comp.to_crs(UTM)
@@ -116,7 +103,6 @@ class DataStore:
             self.comp_names = comp.get("name", gpd.pd.Series(["Competitor"] * len(comp))).tolist()
         else:
             self.comp_xy = np.zeros((0, 2))
-        # land-use (protected first so containment checks give it priority)
         lu = self.layers.get("landuse")
         if lu is not None and len(lu):
             lup = lu.to_crs(UTM)
@@ -130,8 +116,6 @@ class DataStore:
             rkp = rk.to_crs(UTM)
             self.risk_polys = [(r.risk_type, r.risk_level, r.geometry) for r in rkp.itertuples()]
 
-    # population normalisation reference — 95th percentile of effective demand
-    # sampled over a coarse grid of candidate points across the city.
     def compute_pop_ref(self, xs: np.ndarray, ys: np.ndarray) -> None:
         if self.pop_xy is None or not len(xs):
             return
@@ -140,7 +124,6 @@ class DataStore:
         if ref > 0 and math.isfinite(ref):
             self.pop_ref = round(ref * 1.08, -3)  # small headroom
 
-    # ── sites (presets + user pins, persisted to data/sites_user.json) ────
     def _load_sites(self) -> None:
         preset = self.layers.get("sites") or gpd.read_file(self.data_dir / "sites.geojson")
         self.sites = []
@@ -176,7 +159,6 @@ class DataStore:
         user = [s for s in self.sites if not s["preset"]]
         (self.data_dir / "sites_user.json").write_text(json.dumps(user, indent=2))
 
-    # ── helpers ───────────────────────────────────────────────────────────
     def project_point(self, lat: float, lng: float) -> tuple[float, float]:
         return self._to_utm(lng, lat)
 

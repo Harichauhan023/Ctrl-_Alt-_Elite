@@ -1,8 +1,3 @@
-"""Tiny TTL cache for AI explanations (PS-2 §8/§55).
-
-Cache key includes site facts, weights and methodology/prompt versions, so a
-changed weight or methodology invalidates naturally → same request = 0 LLM calls.
-"""
 from __future__ import annotations
 
 import hashlib

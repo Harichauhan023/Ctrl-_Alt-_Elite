@@ -1,24 +1,3 @@
-"""Documented label formula for the synthetic training set (spec §9).
-
-We do NOT pretend synthetic labels are real-world truth. The training target
-is a transparent planning-style baseline rubric applied to REAL extracted
-features, plus small Gaussian noise to make the learning task honest:
-
-    pop_s  = min(100, 100 · effective_population / POP_REF)      (decay mass)
-    acc_s  = 0.6·proximity_component + 0.4·density_component     (major roads)
-    comp_s = 0.5·exp(−c1/2) + 0.3·exp(−c3/6) + 0.2·min(1, nearest/3km)  ·100
-    land_s = NEUTRAL_LANDUSE[category]
-    env_s  = ENV_SCORE[risk_level]
-
-    target = 0.25·pop_s + 0.25·acc_s + 0.20·comp_s + 0.15·land_s + 0.15·env_s
-             + ε,  ε ~ N(0, 2.2)
-    target clipped to [1, 99]
-    if hard constraint (protected land / critical risk): target ×= 0.15
-
-The ML model therefore learns the non-linear interaction structure behind a
-rubric, and its holdout metrics tell us how well the surrogate fits — exactly
-the honest demonstration the hackathon asks for.
-"""
 from __future__ import annotations
 
 import math

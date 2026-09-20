@@ -1,12 +1,11 @@
-"""Site analysis & comparison (PS-2 §34, §37)."""
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from ..geospatial.loader import get_store
-from ..schemas.models import AnalyzeRequest, CompareRequest
-from ..scoring import engine
-from ..scoring.config import BUSINESS_CONFIGS, get_business
+from app.geospatial.loader import get_store
+from app.schemas.models import AnalyzeRequest, CompareRequest
+from app.scoring import engine
+from app.scoring.config import BUSINESS_CONFIGS, get_business
 
 router = APIRouter()
 

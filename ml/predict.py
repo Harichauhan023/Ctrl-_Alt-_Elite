@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-"""Live prediction CLI (spec §22: features → model inference).
-
-    python ml/predict.py 22.3039 70.8022
-
-Extracts REAL features for the coordinate through the backend pipeline and
-runs the saved model — the same path /api/analyze takes.
-"""
 from __future__ import annotations
 
 import sys

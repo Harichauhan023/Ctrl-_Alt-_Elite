@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-"""Re-evaluate the saved model against the training data (spec §11).
-
-    python ml/evaluate.py
-
-Loads the persisted artifact (never a rebuilt one) and reports the same
-metrics.json should contain — proof the saved model is what's served.
-"""
 from __future__ import annotations
 
 import json

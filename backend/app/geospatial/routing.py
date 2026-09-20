@@ -1,13 +1,4 @@
-"""Offline routing engine — real network-based catchments (spec §32).
 
-Instead of public OSRM (needs internet — bad demo dependency), we are the
-routing engine: the REAL OpenStreetMap road graph (1,538 ways) becomes a
-networkx graph weighted by travel minutes (speed by road class), then
-single-source Dijkstra gives true 10/20/30-minute isochrone polygons.
-
-If graph construction fails for any reason we degrade to the labelled
-straight-line travel-shed approximation — the endpoint never bricks.
-"""
 from __future__ import annotations
 
 import json
@@ -17,13 +8,12 @@ import networkx as nx
 import numpy as np
 import shapely
 
-from ..db.seed import SPEED_KMH
-from .loader import UTM, DataStore
+from app.db.seed import SPEED_KMH
+from app.geospatial.loader import UTM, DataStore
 
 MINUTES = (10, 20, 30)
 FALLBACK_SPEED_KMH = 15
 
-# straight-line fallback radius (18 km/h urban average)
 FALLBACK_RADII = {10: 3000.0, 20: 6000.0, 30: 9000.0}
 
 
@@ -81,7 +71,6 @@ class RoadRouter:
     def ready(self) -> bool:
         return self.graph is not None and self.edges > 0
 
-    # ─────────────────────────────────────────────────────────────────────
     def isochrones(self, store: DataStore, lat: float, lng: float,
                    extractor=None, db=None) -> dict:
         """Returns ring polygons (GeoJSON features, WGS84) + stats per minutes."""
@@ -94,7 +83,6 @@ class RoadRouter:
         for m in MINUTES:
             reach = np.array([self.node_xy[n] for n, t in lengths.items() if t <= m])
             if len(reach) < 12:
-                # sparse pocket → honest fallback circle
                 poly_utm = shapely.Point(x, y).buffer(FALLBACK_RADII[m], resolution=48)
                 fallback_used = True
             else:
@@ -120,8 +108,6 @@ class RoadRouter:
 
 
 def _count_within(store, poly_utm, extractor, db, x, y, radius):
-    """Population + competitors inside the isochrone polygon —
-    SQL (ST_Within) when the DB is up, numpy/shapely otherwise."""
     if db is not None:
         try:
             sql = ("SELECT COALESCE(SUM(population),0) FROM population_cells "

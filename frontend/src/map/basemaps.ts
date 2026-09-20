@@ -1,5 +1,3 @@
-// Shared basemap definitions — REAL geographic tiles in every mode:
-// dark = OpenFreeMap vector, streets = OpenStreetMap raster, satellite = Esri imagery (+labels).
 export const STYLE_DARK = "https://tiles.openfreemap.org/styles/dark";
 export const GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
 

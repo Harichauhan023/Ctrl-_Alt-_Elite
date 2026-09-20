@@ -64,7 +64,6 @@ export default function MiniMap({ className = "" }: { className?: string }) {
     });
   };
 
-  // ── init once ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
     let deadLocal = false;
@@ -153,7 +152,6 @@ export default function MiniMap({ className = "" }: { className?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── basemap follows the store ──────────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || curStyle.current === basemap) return;

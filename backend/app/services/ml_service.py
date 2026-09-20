@@ -1,17 +1,10 @@
-"""Served ML model — loads the saved RandomForest artifact once.
-
-predict(feature_dict) → 0–100 readiness. NEVER influenced by the UI weight
-sliders (those only touch the deterministic layer — spec §30). If artifacts
-are missing the service reports available=False and analysis continues
-without an ML number (graceful degradation, same doctrine as AI failover).
-"""
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
 
-from ..config import ROOT_DIR, get_settings
+from app.config import ROOT_DIR, get_settings
 
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -42,7 +35,7 @@ class MLService:
                   f"MAE {self.metrics.get('mae')} ({models})")
         except Exception as exc:  # noqa: BLE001
             self.error = str(exc)
-            print(f"⚠ ML model unavailable ({exc}) — analysis continues without ML prediction")
+            print(f"ML model unavailable ({exc}) — analysis continues without ML prediction")
 
     @property
     def available(self) -> bool:

@@ -1,12 +1,4 @@
-"""RAG retrieval — semantic search against the vector DATABASE (spec §19).
 
-Query → MiniLM embedding (local) → top-k by cosine similarity:
-    hero     : pgvector   (embedding <=> query)
-    fallback : duckdb vss (array_cosine_distance + HNSW index)
-    last     : in-memory cosine over chunks freshly read from rag/documents
-               (still real docs, still real embeddings — never hardcoded text)
-Returns chunk dicts: {title, text, source, tags, score}.
-"""
 from __future__ import annotations
 
 import re
@@ -16,9 +8,9 @@ import numpy as np
 
 _state = {
     "ready": threading.Event(),
-    "mode": "pending",          # pgvector | duckdb-vss | docs-memory | lexical | pending
+    "mode": "pending",
     "db": None,
-    "memory_chunks": None,      # [{'title', 'text', 'source', 'tags', '_vec'}]
+    "memory_chunks": None,
     "embedder_ok": None,
     "error": None,
 }
@@ -29,14 +21,12 @@ def _tokens(text: str) -> set[str]:
 
 
 def warm(db=None) -> str:
-    """Warm the embedding model and decide the retrieval mode."""
     from . import embeddings
     _state["db"] = db
     mode = "lexical"
     try:
         embeddings.get_model()                      # raises if model can't load
-        if db is not None and db.rag_count() > 0:
-            # prove the SQL vector path with a live query
+        if db is not None and getattr(db, "vss_loaded", True) and db.rag_count() > 0:
             probe = embeddings.embed_query("site readiness scoring")
             rows = db.vector_search(probe, k=1)
             if rows:
@@ -46,7 +36,6 @@ def warm(db=None) -> str:
             else:
                 raise RuntimeError("vector search returned no rows")
         else:
-            # docs-memory mode: real documents + real embeddings, minus SQL
             from .ingest import load_all_chunks
             chunks = load_all_chunks()
             texts = [f"{c['title']}. {c['text']}" for c in chunks]
@@ -58,7 +47,6 @@ def warm(db=None) -> str:
             print(f"✔ RAG retriever ready — docs-memory ({len(chunks)} chunks, no DB)")
         _state["embedder_ok"] = True
     except Exception as exc:  # noqa: BLE001
-        # last fallback: lexical over whatever chunk text we can read
         try:
             if _state["memory_chunks"] is None and db is not None and db.rag_count() > 0:
                 _state["memory_chunks"] = db.rag_chunk_rows()

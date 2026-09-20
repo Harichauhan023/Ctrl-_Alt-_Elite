@@ -1,13 +1,12 @@
-"""Site recommender — searches the precomputed H3 zone grid (PS-2 §33 basis)."""
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from shapely.geometry import Point
 
-from ..geospatial.hexgrid import hotspot_grid, score_cell
-from ..geospatial.loader import get_store
-from ..schemas.models import RecommendRequest
-from ..scoring.config import BUSINESS_CONFIGS, get_business
+from app.geospatial.hexgrid import hotspot_grid, score_cell
+from app.geospatial.loader import get_store
+from app.schemas.models import RecommendRequest
+from app.scoring.config import BUSINESS_CONFIGS, get_business
 
 router = APIRouter()
 

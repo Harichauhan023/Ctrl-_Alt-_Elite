@@ -1,11 +1,10 @@
-"""Report export endpoint (PS-2 §52) — downloadable JSON report."""
 from __future__ import annotations
 
 import time
 
 from fastapi import APIRouter
 
-from ..schemas.models import ReportRequest
+from app.schemas.models import ReportRequest
 
 router = APIRouter()
 

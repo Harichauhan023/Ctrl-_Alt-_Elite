@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from . import analysis, catchment, chat, explain, hotspots, meta, ml, polygon, recommend, reports, sites
+from app.api import analysis, catchment, chat, explain, hotspots, meta, ml, polygon, recommend, reports, sites
 
 api_router = APIRouter()
 api_router.include_router(meta.router, tags=["meta"])

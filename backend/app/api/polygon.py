@@ -1,8 +1,3 @@
-"""Custom polygon area analysis (PS-2 §36).
-
-Answers "how healthy is this whole district?" instead of one parcel:
-population, road km, competitors, land/risk mix + zone readiness inside.
-"""
 from __future__ import annotations
 
 from collections import Counter
@@ -12,10 +7,10 @@ import shapely
 from fastapi import APIRouter, HTTPException
 from shapely.geometry import Point
 
-from ..geospatial.hexgrid import hotspot_grid, score_cell
-from ..geospatial.loader import get_store
-from ..schemas.models import PolygonAnalyzeRequest
-from ..scoring.config import BUSINESS_CONFIGS, get_business
+from app.geospatial.hexgrid import hotspot_grid, score_cell
+from app.geospatial.loader import get_store
+from app.schemas.models import PolygonAnalyzeRequest
+from app.scoring.config import BUSINESS_CONFIGS, get_business
 
 router = APIRouter()
 

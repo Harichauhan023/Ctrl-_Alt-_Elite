@@ -1,7 +1,3 @@
-"""
-Prompt builders for the explainable-AI layer (PS-2 §38 contract).
-Compact by design (PS-2 §8 token discipline): structured facts + top-K chunks.
-"""
 from __future__ import annotations
 
 import json

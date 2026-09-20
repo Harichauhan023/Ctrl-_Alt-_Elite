@@ -1,8 +1,3 @@
-"""Local embedding model — sentence-transformers/all-MiniLM-L6-v2 (spec §17).
-
-Served through fastembed (the same HuggingFace model, quantized ONNX runtime —
-no torch, no API quota, ~35 MB one-time download). 384-dimensional vectors.
-"""
 from __future__ import annotations
 
 import threading

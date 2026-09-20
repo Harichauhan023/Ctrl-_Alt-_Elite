@@ -1,9 +1,3 @@
-"""AI provider & fallback tests (spec §42 — AI).
-
-Covers: deterministic explainer contract shape, provider manager bookkeeping,
-and the graceful-degradation rule — with ZERO keys the pipeline must still
-return a complete explanation.
-"""
 import sys
 from pathlib import Path
 

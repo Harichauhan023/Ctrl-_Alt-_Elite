@@ -1,32 +1,23 @@
-"""H3 readiness heatmap (PS-2 §33/§34).
 
-Startup: extract features per H3 res-8 cell centroid with the SAME SQL
-extractor used for point analysis (batched VALUES-join queries — real SQL,
-amortised), then materialise the grid into the spatial DB (hotspot_cells).
-
-A /api/hotspots request then only needs the cheap per-business mapping
-(land suitability + competition polarity) and weighted sum → instant response.
-"""
 from __future__ import annotations
 
 import h3
 import numpy as np
 from shapely.geometry import Polygon
 
-from .loader import DataStore
-from ..scoring import factors
-from ..scoring.config import get_business, heatband_for
-from ..scoring.engine import validate_weights
+from app.geospatial.loader import DataStore
+from app.scoring import factors
+from app.scoring.config import get_business, heatband_for
+from app.scoring.engine import validate_weights
 
 RES = 8
 
 
 class HotspotGrid:
     def __init__(self):
-        self.cells: list[dict] = []   # per-cell raw factor values + geometry
+        self.cells: list[dict] = []
         self.ready = False
 
-    # ── startup precomputation ────────────────────────────────────────────
     def build(self, store: DataStore, extractor=None, db=None) -> None:
         pop = store.layers.get("population")
         if pop is None or not len(pop) or store.pop_xy is None:
@@ -34,19 +25,17 @@ class HotspotGrid:
         print(f"▶ Building H3 res-8 hotspot grid (features via "
               f"{extractor.mode if extractor else 'memory'} extractor)…")
         cells = sorted({h3.cell_to_parent(c, RES) for c in pop["h3"]})
-        centroids = np.array([h3.cell_to_latlng(c) for c in cells])  # (lat, lng)
+        centroids = np.array([h3.cell_to_latlng(c) for c in cells])
         pts = [store.project_point(lat, lng) for lat, lng in centroids]
         xs = np.array([p[0] for p in pts])
         ys = np.array([p[1] for p in pts])
 
-        # population normalisation reference learned over this grid (calibration)
         store.compute_pop_ref(xs, ys)
 
-        # real extraction — batched SQL against the spatial DB (or memory fallback)
         if extractor is not None:
             features = extractor.extract_batch(list(zip(xs.tolist(), ys.tolist())))
         else:
-            from .features import MemoryExtractor
+            from app.geospatial.features import MemoryExtractor
             features = MemoryExtractor(store).extract_batch(list(zip(xs.tolist(), ys.tolist())))
 
         self.cells = []
@@ -91,7 +80,6 @@ class HotspotGrid:
         self.ready = True
         print(f"✔ Hotspot grid ready — {len(self.cells)} cells")
 
-    # ── per-request rendering (fast) ──────────────────────────────────────
     def readiness_fc(self, business_type: str, weights: dict | None) -> dict:
         cfg = get_business(business_type)
         w = validate_weights(weights or cfg["weights"])
@@ -139,8 +127,7 @@ hotspot_grid = HotspotGrid()
 
 
 def score_cell(raw: dict, business_type: str, weights: dict | None) -> dict:
-    """Score one precomputed hotspot cell for a business + weight set.
-    Shared by /hotspots, /api/recommend and /api/polygon — single source of truth."""
+    """Score one precomputed hotspot cell for a business + weight set."""
     cfg = get_business(business_type)
     w = validate_weights(weights or cfg["weights"])
     polarity = cfg["competition_polarity"]
